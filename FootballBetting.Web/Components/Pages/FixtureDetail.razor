@@ -1,0 +1,405 @@
+@page "/fixtures/{FixtureId:int}"
+@page "/fixture/{FixtureId:int}"
+@rendermode InteractiveServer
+@using FootballBetting.Web.Services
+@using FootballAPIWrapper.Models
+@inject FootballApiService FootballApi
+@inject NavigationManager Navigation
+@inject ILogger<FixtureDetail> Logger
+
+<PageTitle>@GetPageTitle()</PageTitle>
+
+<div class="container-fluid">
+    <!-- Back Button -->
+    <div class="row mb-3">
+        <div class="col">
+            <button class="btn btn-outline-secondary" @onclick="GoBack">
+                <i class="bi bi-arrow-left me-2"></i>Back to Fixtures
+            </button>
+        </div>
+    </div>
+
+    @if (loading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading fixture details...</span>
+            </div>
+            <div class="mt-2">Loading fixture details...</div>
+        </div>
+    }
+    else if (error || fixture == null)
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Error:</strong> @(error ? "Unable to load fixture details." : "Fixture not found.")
+            <button class="btn btn-outline-danger btn-sm ms-2" @onclick="LoadFixtureDetails">
+                <i class="bi bi-arrow-clockwise me-1"></i>Retry
+            </button>
+        </div>
+    }
+    else
+    {
+        <!-- Main Fixture Info -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-4 text-center">
+                                <div class="team-section">
+                                    <img src="@fixture.Teams.Home.Logo" alt="@fixture.Teams.Home.Name" class="team-logo-large mb-2" />
+                                    <h4 class="@(fixture.Teams.Home.Winner == true ? "fw-bold text-success" : "")">@fixture.Teams.Home.Name</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="match-center">
+                                    @if (fixture.Goals.Home.HasValue && fixture.Goals.Away.HasValue)
+                                    {
+                                        <div class="score-display">
+                                            <span class="score-number">@fixture.Goals.Home</span>
+                                            <span class="score-separator">-</span>
+                                            <span class="score-number">@fixture.Goals.Away</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="score-display">
+                                            <span class="text-muted fs-3">VS</span>
+                                        </div>
+                                    }
+                                    <div class="match-status mt-2">
+                                        <span class="badge @GetStatusBadgeClass(fixture.Fixture.Status.Short) fs-6">
+                                            @GetStatusText(fixture.Fixture.Status.Short)
+                                        </span>
+                                        @if (fixture.Fixture.Status.Elapsed.HasValue)
+                                        {
+                                            <div class="small text-muted mt-1">@(fixture.Fixture.Status.Elapsed)'</div>
+                                        }
+                                    </div>
+                                    <div class="match-time mt-2">
+                                        <div class="fw-semibold">@fixture.Fixture.Date.ToString("HH:mm")</div>
+                                        <div class="text-muted">@fixture.Fixture.Date.ToString("dddd, dd MMMM yyyy")</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="team-section">
+                                    <img src="@fixture.Teams.Away.Logo" alt="@fixture.Teams.Away.Name" class="team-logo-large mb-2" />
+                                    <h4 class="@(fixture.Teams.Away.Winner == true ? "fw-bold text-success" : "")">@fixture.Teams.Away.Name</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- League and Venue Info -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-trophy me-2"></i>League Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <img src="@fixture.League.Logo" alt="@fixture.League.Name" class="league-logo-large me-3" />
+                            <div>
+                                <h6 class="mb-1">@fixture.League.Name</h6>
+                                <p class="text-muted mb-0">@fixture.League.Country.Name</p>
+                                <small class="text-muted">@fixture.League.Type</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Venue Information</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (fixture.Fixture.Venue != null)
+                        {
+                            <h6 class="mb-1">@fixture.Fixture.Venue.Name</h6>
+                            <p class="text-muted mb-1">@fixture.Fixture.Venue.City</p>
+                            @if (!string.IsNullOrEmpty(fixture.Fixture.Venue.Address))
+                            {
+                                <p class="text-muted mb-1">@fixture.Fixture.Venue.Address</p>
+                            }
+                            @if (fixture.Fixture.Venue.Capacity.HasValue)
+                            {
+                                <small class="text-muted">Capacity: @fixture.Fixture.Venue.Capacity.Value.ToString("N0")</small>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted">Venue information not available</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Match Details -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-clock me-2"></i>Match Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Fixture ID:</strong>
+                            </div>
+                            <div class="col-6">
+                                @fixture.Fixture.Id
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Date & Time:</strong>
+                            </div>
+                            <div class="col-6">
+                                @fixture.Fixture.Date.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Timezone:</strong>
+                            </div>
+                            <div class="col-6">
+                                @(fixture.Fixture.Timezone ?? "UTC")
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(fixture.Fixture.Referee))
+                        {
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>Referee:</strong>
+                                </div>
+                                <div class="col-6">
+                                    @fixture.Fixture.Referee
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            
+            @if (fixture.Score != null && HasScoreData(fixture.Score))
+            {
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Score Breakdown</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (fixture.Score.Halftime?.Home.HasValue == true)
+                            {
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        <strong>Half Time:</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        @fixture.Score.Halftime.Home - @fixture.Score.Halftime.Away
+                                    </div>
+                                </div>
+                            }
+                            @if (fixture.Score.Fulltime?.Home.HasValue == true)
+                            {
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        <strong>Full Time:</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        @fixture.Score.Fulltime.Home - @fixture.Score.Fulltime.Away
+                                    </div>
+                                </div>
+                            }
+                            @if (fixture.Score.Extratime?.Home.HasValue == true)
+                            {
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        <strong>Extra Time:</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        @fixture.Score.Extratime.Home - @fixture.Score.Extratime.Away
+                                    </div>
+                                </div>
+                            }
+                            @if (fixture.Score.Penalty?.Home.HasValue == true)
+                            {
+                                <div class="row">
+                                    <div class="col-6">
+                                        <strong>Penalties:</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        @fixture.Score.Penalty.Home - @fixture.Score.Penalty.Away
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .team-logo-large {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+    }
+    
+    .league-logo-large {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+    }
+    
+    .score-display {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #0d6efd;
+    }
+    
+    .score-number {
+        margin: 0 0.5rem;
+    }
+    
+    .score-separator {
+        color: #6c757d;
+    }
+    
+    .match-center {
+        padding: 1rem 0;
+    }
+    
+    .team-section {
+        padding: 1rem 0;
+    }
+    
+    .card-header h5 {
+        font-size: 1.1rem;
+    }
+</style>
+
+@code {
+    [Parameter] public int FixtureId { get; set; }
+    
+    private FixtureDetails? fixture = null;
+    private bool loading = true;
+    private bool error = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Logger.LogInformation("FixtureDetail page initialized for FixtureId: {FixtureId}", FixtureId);
+        await LoadFixtureDetails();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (fixture?.Fixture?.Id != FixtureId)
+        {
+            await LoadFixtureDetails();
+        }
+    }
+
+    private async Task LoadFixtureDetails()
+    {
+        try
+        {
+            loading = true;
+            error = false;
+            
+            fixture = await FootballApi.GetFixtureByIdAsync(FixtureId);
+            
+            if (fixture == null)
+            {
+                error = true;
+                Logger.LogWarning("Fixture {FixtureId} not found", FixtureId);
+            }
+            else
+            {
+                Logger.LogInformation("Loaded fixture {FixtureId}: {HomeTeam} vs {AwayTeam}", 
+                    FixtureId, fixture.Teams?.Home?.Name, fixture.Teams?.Away?.Name);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading fixture details for ID: {FixtureId}", FixtureId);
+            error = true;
+            fixture = null;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/fixtures");
+    }
+
+    private string GetPageTitle()
+    {
+        if (fixture?.Teams?.Home?.Name != null && fixture?.Teams?.Away?.Name != null)
+        {
+            return $"{fixture.Teams.Home.Name} vs {fixture.Teams.Away.Name} - Fixture Details";
+        }
+        return "Fixture Details";
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "NS" or "TBD" => "bg-secondary", // Not Started
+            "1H" or "HT" or "2H" or "ET" or "BT" or "P" or "SUSP" or "INT" => "bg-success", // Live/In Progress
+            "FT" or "AET" or "PEN" => "bg-primary", // Finished
+            "PST" or "CANC" or "ABD" => "bg-danger", // Postponed/Cancelled/Abandoned
+            "AWD" or "WO" => "bg-warning", // Awarded/Walkover
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetStatusText(string status)
+    {
+        return status switch
+        {
+            "TBD" => "TBD",
+            "NS" => "Not Started",
+            "1H" => "1st Half",
+            "HT" => "Half Time",
+            "2H" => "2nd Half",
+            "ET" => "Extra Time",
+            "BT" => "Break Time",
+            "P" => "Penalty",
+            "SUSP" => "Suspended",
+            "INT" => "Interrupted",
+            "FT" => "Full Time",
+            "AET" => "After Extra Time",
+            "PEN" => "After Penalties",
+            "PST" => "Postponed",
+            "CANC" => "Cancelled",
+            "ABD" => "Abandoned",
+            "AWD" => "Technical Loss",
+            "WO" => "WalkOver",
+            _ => status
+        };
+    }
+    
+    private bool HasScoreData(Score score)
+    {
+        return score?.Halftime?.Home.HasValue == true ||
+               score?.Fulltime?.Home.HasValue == true ||
+               score?.Extratime?.Home.HasValue == true ||
+               score?.Penalty?.Home.HasValue == true;
+    }
+}

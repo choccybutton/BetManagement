@@ -142,4 +142,34 @@ public class FootballApiService
             return new List<FixtureDetails>();
         }
     }
+
+    /// <summary>
+    /// Gets a specific fixture by ID
+    /// </summary>
+    /// <param name="fixtureId">The ID of the fixture to retrieve</param>
+    /// <returns>The fixture details if found, otherwise null</returns>
+    public async Task<FixtureDetails?> GetFixtureByIdAsync(int fixtureId)
+    {
+        try
+        {
+            var response = await _fixtureService.GetFixtureByIdAsync(fixtureId);
+
+            if (response?.Response == null || !response.Response.Any())
+            {
+                _logger.LogWarning("No fixture data received for ID: {FixtureId}", fixtureId);
+                return null;
+            }
+
+            var fixture = response.Response.FirstOrDefault();
+            _logger.LogInformation("Retrieved fixture {FixtureId}: {HomeTeam} vs {AwayTeam}", 
+                fixtureId, fixture?.Teams?.Home?.Name, fixture?.Teams?.Away?.Name);
+            
+            return fixture;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving fixture {FixtureId}", fixtureId);
+            return null;
+        }
+    }
 }

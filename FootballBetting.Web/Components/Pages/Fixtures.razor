@@ -1,7 +1,9 @@
 @page "/fixtures"
+@rendermode InteractiveServer
 @using FootballBetting.Web.Services
 @using FootballAPIWrapper.Models
 @inject FootballApiService FootballApi
+@inject NavigationManager Navigation
 @inject ILogger<Fixtures> Logger
 
 <PageTitle>Fixtures</PageTitle>
@@ -118,7 +120,7 @@
                                 <tbody>
                                     @foreach (var fixture in fixtures)
                                     {
-                                        <tr>
+                                        <tr class="fixture-row" @onclick="@(async () => await NavigateToFixtureDetailAsync(fixture.Fixture.Id))" @onclick:preventDefault="true" style="cursor: pointer;">
                                             <td class="align-middle">
                                                 <div class="fw-semibold">@fixture.Fixture.Date.ToString("HH:mm")</div>
                                                 <div class="small text-muted">@fixture.Fixture.Date.ToString("dd/MM/yyyy")</div>
@@ -128,7 +130,7 @@
                                                     <img src="@fixture.League.Logo" alt="@fixture.League.Name" class="league-logo me-2" />
                                                     <div>
                                                         <div class="fw-semibold">@fixture.League.Name</div>
-                                                        <div class="small text-muted">@fixture.League.Country</div>
+                                                        <div class="small text-muted">@fixture.League.Country.Name</div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -201,6 +203,10 @@
         width: 24px;
         height: 24px;
         object-fit: contain;
+    }
+    
+    .fixture-row:hover {
+        background-color: rgba(13, 110, 253, 0.1);
     }
 </style>
 
@@ -331,5 +337,15 @@
             "WO" => "WalkOver",
             _ => status
         };
+    }
+    
+    private async Task NavigateToFixtureDetailAsync(int fixtureId)
+    {
+        Logger.LogInformation("Navigating to fixture detail: {FixtureId}", fixtureId);
+        var url = $"/fixtures/{fixtureId}";
+        Logger.LogInformation("Navigation URL: {Url}", url);
+        
+        await Task.Delay(1); // Small delay to ensure the event is processed
+        Navigation.NavigateTo(url, forceLoad: false);
     }
 }
