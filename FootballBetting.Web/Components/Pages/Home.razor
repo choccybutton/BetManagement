@@ -1,0 +1,45 @@
+﻿@page "/"
+@using FootballBetting.Web.Components.Shared
+
+<PageTitle>Football Betting Dashboard</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="mb-0">Football Betting Dashboard</h1>
+            <p class="text-muted">Welcome to your football betting management platform</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 col-xl-4 mb-4">
+            <TodayFixturesPanel />
+        </div>
+        
+        <div class="col-lg-6 col-xl-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-graph-up me-2"></i>Quick Stats
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Betting statistics and insights will be displayed here.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-12 col-xl-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-list-check me-2"></i>Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Recent betting activity will be displayed here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

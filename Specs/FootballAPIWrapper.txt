@@ -1,0 +1,11 @@
+Can you please review the documentation at this web address -https://www.api-football.com/documentation-v3.
+
+From this create a C# wrapper that exposes the full functionality of the API in as simple a way as possible. All entities should be available to consumers of the wrapper. 
+
+The wrapper should track the usage statistics made available through the api headers in responses to the API.
+
+The API key and address should be configurable by consumers of the wrapper.
+
+Create the wrapper in a folder of it's own to keep it separate to the rest of the application we are working on.
+
+Also create a simple React based web interface that allows all functionality of the wrapper to be tested.

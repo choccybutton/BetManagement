@@ -1,0 +1,7 @@
+var client = new RestClient("https://v3.football.api-sports.io/leagues");
+client.Timeout = -1;
+var request = new RestRequest(Method.GET);
+request.AddHeader("x-rapidapi-key", "b4b1c75ce63a9721cd51b65aaccb8bcc");
+request.AddHeader("x-rapidapi-host", "v3.football.api-sports.io");
+IRestResponse response = client.Execute(request);
+Console.WriteLine(response.Content);

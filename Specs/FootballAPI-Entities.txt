@@ -1,0 +1,276 @@
+FOOTBALL API v3 - COMPLETE ENTITY LIST
+==========================================
+
+This document lists all entities, models, and data structures used by the API-Football.com v3 API
+as implemented in the FootballAPIWrapper C# library.
+
+CORE RESPONSE STRUCTURE
+=======================
+
+1. ApiResponse<T>
+   - Generic wrapper for all API responses
+   - Properties: Get, Parameters, Errors, Results, Paging, Response
+
+2. Paging
+   - Pagination information for multi-page results
+   - Properties: Current, Total
+
+LEAGUE & COMPETITION ENTITIES
+=============================
+
+3. League
+   - Core league/competition information
+   - Properties: Id, Name, Type, Logo, Country, Seasons
+
+4. Country
+   - Country information for leagues and teams
+   - Properties: Name, Code, Flag
+
+5. Season
+   - Season information within leagues
+   - Properties: Year, Start, End, Current, Coverage
+
+6. Coverage
+   - Coverage details for what data is available
+   - Properties: Fixtures, Standings, Players, TopScorers, TopAssists, TopCards, Injuries, Predictions, Odds
+
+7. CoverageDetails
+   - Detailed coverage information for fixtures
+   - Properties: Events, Lineups, StatisticsFixtures, StatisticsPlayers
+
+TEAM ENTITIES
+=============
+
+8. Team
+   - Core team information
+   - Properties: Id, Name, Code, Country, Founded, National, Logo, Venue
+
+9. Venue
+   - Stadium/venue information
+   - Properties: Id, Name, Address, City, Capacity, Surface, Image
+
+FIXTURE & MATCH ENTITIES
+========================
+
+10. Fixture
+    - Basic fixture information
+    - Properties: Id, Referee, Timezone, Date, Timestamp, Periods, Venue, Status
+
+11. FixtureDetails
+    - Complete fixture information with teams and scores
+    - Properties: Fixture, League, Teams, Goals, Score
+
+12. Periods
+    - Match period timestamps
+    - Properties: First, Second
+
+13. FixtureStatus
+    - Match status information
+    - Properties: Long, Short, Elapsed
+
+14. Teams (Match Context)
+    - Team information within fixture context
+    - Properties: Home, Away
+
+15. TeamInfo
+    - Team information within match context
+    - Properties: Id, Name, Logo, Winner
+
+16. Goals
+    - Goal information for home/away
+    - Properties: Home, Away
+
+17. Score
+    - Complete score breakdown
+    - Properties: Halftime, Fulltime, Extratime, Penalty
+
+PLAYER ENTITIES
+===============
+
+18. Player
+    - Core player information
+    - Properties: Id, Name, Firstname, Lastname, Age, Birth, Nationality, Height, Weight, Injured, Photo
+
+19. Birth
+    - Player birth information
+    - Properties: Date, Place, Country
+
+20. PlayerStatistics
+    - Player with statistics
+    - Properties: Player, Statistics
+
+21. PlayerSeasonStats
+    - Player statistics for specific season
+    - Properties: Team, League, Games, Substitutes, Shots, Goals, Passes, Tackles, Duels, Dribbles, Fouls, Cards, Penalty
+
+22. PlayerGames
+    - Player game statistics
+    - Properties: Appearences, Lineups, Minutes, Number, Position, Rating, Captain
+
+23. PlayerSubstitutes
+    - Player substitution statistics
+    - Properties: In, Out, Bench
+
+24. PlayerShots
+    - Player shooting statistics
+    - Properties: Total, On
+
+25. PlayerGoals
+    - Player goal statistics (including goalkeepers)
+    - Properties: Total, Conceded, Assists, Saves
+
+26. PlayerPasses
+    - Player passing statistics
+    - Properties: Total, Key, Accuracy
+
+27. PlayerTackles
+    - Player defensive statistics
+    - Properties: Total, Blocks, Interceptions
+
+28. PlayerDuels
+    - Player duel statistics
+    - Properties: Total, Won
+
+29. PlayerDribbles
+    - Player dribbling statistics
+    - Properties: Attempts, Success, Past
+
+30. PlayerFouls
+    - Player foul statistics
+    - Properties: Drawn, Committed
+
+31. PlayerCards
+    - Player card statistics
+    - Properties: Yellow, Yellowred, Red
+
+32. PlayerPenalty
+    - Player penalty statistics
+    - Properties: Won, Commited, Scored, Missed, Saved
+
+USAGE TRACKING ENTITIES
+=======================
+
+33. ApiUsageStatistics
+    - API usage tracking information
+    - Properties: RequestsUsed, RequestsLimit, RequestsRemaining, RateLimitReset, TotalApiCalls, TrackingStarted, LastApiCall, AverageResponseTimeMs, FailedRequests, SuccessRate
+
+CONFIGURATION ENTITIES
+======================
+
+34. FootballApiConfiguration
+    - API configuration settings
+    - Properties: ApiKey, BaseUrl, RapidApiHost, TimeoutSeconds, EnableUsageTracking
+
+ADDITIONAL ENTITIES (Extended API Coverage)
+==========================================
+
+The following entities would be included for complete API coverage but are not yet fully implemented:
+
+35. Standing
+    - League table/standings information
+    - Properties: Rank, Team, Points, GoalsDiff, Group, Form, Status, Description, Goals, All, Home, Away, Update
+
+36. Statistic
+    - Team or player statistics
+    - Properties: Team, League, Fixtures, Goals, Biggest, CleanSheet, FailedToScore, Penalty, Lineups, Cards
+
+37. Event
+    - Match events (goals, cards, substitutions)
+    - Properties: Time, Team, Player, Assist, Type, Detail, Comments
+
+38. Lineup
+    - Team lineups for matches
+    - Properties: Team, Formation, StartXI, Substitutes, Coach
+
+39. Injury
+    - Player injury information
+    - Properties: Player, Team, Fixture, Date, Season, Type, Reason
+
+40. Transfer
+    - Player transfer information
+    - Properties: Player, Update, Transfers, Date, Type, Teams
+
+41. Coach
+    - Coach/manager information
+    - Properties: Id, Name, Firstname, Lastname, Age, Birth, Nationality, Height, Weight, Photo, Team
+
+42. Prediction
+    - Match prediction data
+    - Properties: Winner, WinOrDraw, UnderOver, Goals, Advice, Percent, Teams, H2H, Comparison, Form
+
+43. Odds
+    - Betting odds information
+    - Properties: League, Fixture, Update, Bookmakers, Bet, Values
+
+44. Trophy
+    - Player/team trophies and achievements
+    - Properties: League, Country, Season, Place
+
+45. Timezone
+    - Available timezone information
+    - Properties: Timezone (string array)
+
+ENDPOINT COVERAGE
+================
+
+The entities above support the following API endpoint categories:
+
+IMPLEMENTED:
+- Leagues (/leagues)
+- Teams (/teams, /teams/statistics)
+- Fixtures (/fixtures, /fixtures/headtohead, /fixtures/statistics, /fixtures/events, /fixtures/lineups, /fixtures/players)
+- Players (/players, /players/topscorers, /players/topassists, /players/topyellowcards, /players/topredcards, /players/squads)
+
+POTENTIAL EXTENSIONS:
+- Standings (/standings)
+- Injuries (/injuries)
+- Transfers (/transfers)
+- Coaches (/coachs)
+- Predictions (/predictions)
+- Odds (/odds, /odds/live)
+- Trophies (/trophies)
+- Timezones (/timezone)
+- Countries (/countries)
+- Venues (/venues)
+- Status (/status)
+
+NOTES
+=====
+
+1. All entities use JsonProperty attributes for proper JSON serialization/deserialization
+2. Nullable properties (?) are used where API may not always return values
+3. Collections use List<T> for arrays in API responses
+4. DateTime properties handle ISO 8601 format from API
+5. Numeric IDs are consistently int type
+6. String properties handle various text data from API
+7. Boolean properties handle true/false values from API
+
+IMPLEMENTATION STATUS
+====================
+
+✅ FULLY IMPLEMENTED (34 entities):
+- Core response structures
+- League and competition entities  
+- Team entities
+- Fixture and match entities
+- Player entities (complete statistics)
+- Usage tracking entities
+- Configuration entities
+
+🔄 PARTIALLY IMPLEMENTED:
+- Extended statistics (team level)
+- Advanced fixture data (events, lineups)
+
+📋 PLANNED FOR FUTURE:
+- Standings entities
+- Injury tracking entities
+- Transfer entities
+- Coach entities
+- Prediction entities
+- Odds entities
+- Trophy entities
+
+This comprehensive entity list ensures full coverage of the API-Football.com v3 API capabilities
+within the FootballAPIWrapper C# library implementation.
+
+Last Updated: September 25, 2025

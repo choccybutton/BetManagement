@@ -1,0 +1,335 @@
+@page "/fixtures"
+@using FootballBetting.Web.Services
+@using FootballAPIWrapper.Models
+@inject FootballApiService FootballApi
+@inject ILogger<Fixtures> Logger
+
+<PageTitle>Fixtures</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="mb-0">Football Fixtures</h1>
+            <p class="text-muted">View and filter football fixtures by date</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-auto">
+                            <label class="form-label mb-0">Quick Filters:</label>
+                        </div>
+                        
+                        <div class="col-auto">
+                            <div class="btn-group" role="group" aria-label="Date filters">
+                                <button type="button" 
+                                        class="btn @(selectedFilter == "yesterday" ? "btn-primary" : "btn-outline-primary")"
+                                        @onclick="@(() => SelectQuickFilter("yesterday"))">
+                                    Yesterday
+                                </button>
+                                <button type="button" 
+                                        class="btn @(selectedFilter == "today" ? "btn-primary" : "btn-outline-primary")"
+                                        @onclick="@(() => SelectQuickFilter("today"))">
+                                    Today
+                                </button>
+                                <button type="button" 
+                                        class="btn @(selectedFilter == "tomorrow" ? "btn-primary" : "btn-outline-primary")"
+                                        @onclick="@(() => SelectQuickFilter("tomorrow"))">
+                                    Tomorrow
+                                </button>
+                                <button type="button" 
+                                        class="btn @(selectedFilter == "live" ? "btn-success" : "btn-outline-success")"
+                                        @onclick="@(() => SelectQuickFilter("live"))">
+                                    <i class="bi bi-broadcast me-1"></i>Live
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="col-auto">
+                            <label for="customDate" class="form-label mb-0">Custom Date:</label>
+                        </div>
+                        
+                        <div class="col-auto">
+                            <input type="date" 
+                                   id="customDate"
+                                   class="form-control" 
+                                   value="@selectedDate" 
+                                   @onchange="OnCustomDateChanged" />
+                        </div>
+
+                        <div class="col-auto">
+                            <button class="btn btn-secondary" @onclick="RefreshFixtures" disabled="@loading">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            @if (loading)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading fixtures...</span>
+                    </div>
+                    <div class="mt-2">Loading fixtures...</div>
+                </div>
+            }
+            else if (error)
+            {
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Error:</strong> Unable to load fixtures. Please try again later.
+                    <button class="btn btn-outline-danger btn-sm ms-2" @onclick="RefreshFixtures">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Retry
+                    </button>
+                </div>
+            }
+            else if (fixtures.Any())
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            @GetFilterTitle() 
+                            <span class="badge bg-secondary ms-2">@fixtures.Count fixture(s)</span>
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>League</th>
+                                        <th>Home Team</th>
+                                        <th>Away Team</th>
+                                        <th>Score</th>
+                                        <th>Status</th>
+                                        <th>Venue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var fixture in fixtures)
+                                    {
+                                        <tr>
+                                            <td class="align-middle">
+                                                <div class="fw-semibold">@fixture.Fixture.Date.ToString("HH:mm")</div>
+                                                <div class="small text-muted">@fixture.Fixture.Date.ToString("dd/MM/yyyy")</div>
+                                            </td>
+                                            <td class="align-middle">
+                                                <div class="d-flex align-items-center">
+                                                    <img src="@fixture.League.Logo" alt="@fixture.League.Name" class="league-logo me-2" />
+                                                    <div>
+                                                        <div class="fw-semibold">@fixture.League.Name</div>
+                                                        <div class="small text-muted">@fixture.League.Country</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="align-middle">
+                                                <div class="d-flex align-items-center">
+                                                    <img src="@fixture.Teams.Home.Logo" alt="@fixture.Teams.Home.Name" class="team-logo me-2" />
+                                                    <span class="@(fixture.Teams.Home.Winner == true ? "fw-bold" : "")">@fixture.Teams.Home.Name</span>
+                                                </div>
+                                            </td>
+                                            <td class="align-middle">
+                                                <div class="d-flex align-items-center">
+                                                    <img src="@fixture.Teams.Away.Logo" alt="@fixture.Teams.Away.Name" class="team-logo me-2" />
+                                                    <span class="@(fixture.Teams.Away.Winner == true ? "fw-bold" : "")">@fixture.Teams.Away.Name</span>
+                                                </div>
+                                            </td>
+                                            <td class="align-middle">
+                                                @if (fixture.Goals.Home.HasValue && fixture.Goals.Away.HasValue)
+                                                {
+                                                    <span class="fw-bold fs-5">@fixture.Goals.Home - @fixture.Goals.Away</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td class="align-middle">
+                                                <span class="badge @GetStatusBadgeClass(fixture.Fixture.Status.Short)">
+                                                    @GetStatusText(fixture.Fixture.Status.Short)
+                                                </span>
+                                                @if (fixture.Fixture.Status.Elapsed.HasValue)
+                                                {
+                                                    <div class="small text-muted">@(fixture.Fixture.Status.Elapsed)'</div>
+                                                }
+                                            </td>
+                                            <td class="align-middle">
+                                                @if (fixture.Fixture.Venue != null)
+                                                {
+                                                    <div>
+                                                        <div class="small">@fixture.Fixture.Venue.Name</div>
+                                                        <div class="small text-muted">@fixture.Fixture.Venue.City</div>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">TBD</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-calendar-x display-1 text-muted"></i>
+                    <h4 class="mt-3">No fixtures found</h4>
+                    <p class="text-muted">There are no fixtures for @GetFilterTitle().ToLower().</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .team-logo, .league-logo {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+    }
+</style>
+
+@code {
+    private List<FixtureDetails> fixtures = new();
+    private bool loading = true;
+    private bool error = false;
+    private string selectedFilter = "today";
+    private string selectedDate = DateTime.Today.ToString("yyyy-MM-dd");
+
+    protected override async Task OnInitializedAsync()
+    {
+        selectedDate = DateTime.Today.ToString("yyyy-MM-dd");
+        await LoadFixtures();
+    }
+
+    private async Task SelectQuickFilter(string filter)
+    {
+        selectedFilter = filter;
+        
+        switch (filter)
+        {
+            case "yesterday":
+                selectedDate = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
+                break;
+            case "today":
+                selectedDate = DateTime.Today.ToString("yyyy-MM-dd");
+                break;
+            case "tomorrow":
+                selectedDate = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+                break;
+            case "live":
+                // Live fixtures don't need a specific date
+                break;
+        }
+        
+        await LoadFixtures();
+    }
+
+    private async Task OnCustomDateChanged(ChangeEventArgs e)
+    {
+        selectedDate = e.Value?.ToString() ?? DateTime.Today.ToString("yyyy-MM-dd");
+        selectedFilter = "custom";
+        await LoadFixtures();
+    }
+
+    private async Task RefreshFixtures()
+    {
+        await LoadFixtures();
+    }
+
+    private async Task LoadFixtures()
+    {
+        try
+        {
+            loading = true;
+            error = false;
+            
+            fixtures = selectedFilter switch
+            {
+                "yesterday" => await FootballApi.GetYesterdayFixturesAsync(),
+                "today" => await FootballApi.GetTodayFixturesAsync(),
+                "tomorrow" => await FootballApi.GetTomorrowFixturesAsync(),
+                "live" => await FootballApi.GetLiveFixturesAsync(),
+                "custom" => await FootballApi.GetFixturesForDateAsync(DateTime.ParseExact(selectedDate, "yyyy-MM-dd", null)),
+                _ => await FootballApi.GetTodayFixturesAsync()
+            };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading fixtures for filter: {Filter}, date: {Date}", selectedFilter, selectedDate);
+            error = true;
+            fixtures = new List<FixtureDetails>();
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private string GetFilterTitle()
+    {
+        return selectedFilter switch
+        {
+            "yesterday" => "Yesterday's Fixtures",
+            "today" => "Today's Fixtures", 
+            "tomorrow" => "Tomorrow's Fixtures",
+            "live" => "Live Fixtures",
+            "custom" => $"Fixtures for {DateTime.ParseExact(selectedDate, "yyyy-MM-dd", null):dd/MM/yyyy}",
+            _ => "Fixtures"
+        };
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "NS" or "TBD" => "bg-secondary", // Not Started
+            "1H" or "HT" or "2H" or "ET" or "BT" or "P" or "SUSP" or "INT" => "bg-success", // Live/In Progress
+            "FT" or "AET" or "PEN" => "bg-primary", // Finished
+            "PST" or "CANC" or "ABD" => "bg-danger", // Postponed/Cancelled/Abandoned
+            "AWD" or "WO" => "bg-warning", // Awarded/Walkover
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetStatusText(string status)
+    {
+        return status switch
+        {
+            "TBD" => "TBD",
+            "NS" => "Not Started",
+            "1H" => "1st Half",
+            "HT" => "Half Time",
+            "2H" => "2nd Half",
+            "ET" => "Extra Time",
+            "BT" => "Break Time",
+            "P" => "Penalty",
+            "SUSP" => "Suspended",
+            "INT" => "Interrupted",
+            "FT" => "Full Time",
+            "AET" => "After Extra Time",
+            "PEN" => "After Penalties",
+            "PST" => "Postponed",
+            "CANC" => "Cancelled",
+            "ABD" => "Abandoned",
+            "AWD" => "Technical Loss",
+            "WO" => "WalkOver",
+            _ => status
+        };
+    }
+}

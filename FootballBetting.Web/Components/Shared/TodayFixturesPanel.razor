@@ -1,0 +1,148 @@
+@using FootballBetting.Web.Services
+@using FootballAPIWrapper.Models
+@inject FootballApiService FootballApi
+@inject ILogger<TodayFixturesPanel> Logger
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-calendar-event me-2"></i>Today's Upcoming Fixtures
+        </h5>
+    </div>
+    <div class="card-body">
+        @if (loading)
+        {
+            <div class="d-flex justify-content-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+        else if (fixtures.Any())
+        {
+            <div class="list-group list-group-flush">
+                @foreach (var fixture in fixtures)
+                {
+                    <div class="list-group-item border-0 px-0 py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <img src="@fixture.Teams.Home.Logo" alt="@fixture.Teams.Home.Name" class="team-logo me-2" />
+                                    <span class="fw-semibold">@fixture.Teams.Home.Name</span>
+                                    <span class="text-muted mx-2">vs</span>
+                                    <img src="@fixture.Teams.Away.Logo" alt="@fixture.Teams.Away.Name" class="team-logo me-2" />
+                                    <span class="fw-semibold">@fixture.Teams.Away.Name</span>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="small text-muted">@fixture.League.Name</div>
+                                <div class="fw-semibold">@fixture.Fixture.Date.ToString("HH:mm")</div>
+                                <span class="badge @GetStatusBadgeClass(fixture.Fixture.Status.Short)">
+                                    @GetStatusText(fixture.Fixture.Status.Short)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            <div class="mt-3">
+                <a href="/fixtures" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-arrow-right me-1"></i>View All Fixtures
+                </a>
+            </div>
+        }
+        else if (error)
+        {
+            <div class="alert alert-warning mb-0">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Unable to load fixtures. Please try again later.
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-3">
+                <i class="bi bi-calendar-x me-2"></i>
+                No upcoming fixtures for today.
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .team-logo {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+</style>
+
+@code {
+    private List<FixtureDetails> fixtures = new();
+    private bool loading = true;
+    private bool error = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFixtures();
+    }
+
+    private async Task LoadFixtures()
+    {
+        try
+        {
+            loading = true;
+            error = false;
+            fixtures = await FootballApi.GetTodayUpcomingFixturesAsync(10);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading today's fixtures for dashboard panel");
+            error = true;
+            fixtures = new List<FixtureDetails>();
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "NS" => "bg-secondary", // Not Started
+            "1H" or "HT" or "2H" or "ET" or "BT" or "P" or "SUSP" or "INT" => "bg-success", // Live/In Progress
+            "FT" or "AET" or "PEN" => "bg-primary", // Finished
+            "PST" or "CANC" or "ABD" => "bg-danger", // Postponed/Cancelled/Abandoned
+            "AWD" or "WO" => "bg-warning", // Awarded/Walkover
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetStatusText(string status)
+    {
+        return status switch
+        {
+            "TBD" => "TBD",
+            "NS" => "Not Started",
+            "1H" => "1st Half",
+            "HT" => "Half Time",
+            "2H" => "2nd Half",
+            "ET" => "Extra Time",
+            "BT" => "Break Time",
+            "P" => "Penalty",
+            "SUSP" => "Suspended",
+            "INT" => "Interrupted",
+            "FT" => "Full Time",
+            "AET" => "After Extra Time",
+            "PEN" => "After Penalties",
+            "PST" => "Postponed",
+            "CANC" => "Cancelled",
+            "ABD" => "Abandoned",
+            "AWD" => "Technical Loss",
+            "WO" => "WalkOver",
+            _ => status
+        };
+    }
+}

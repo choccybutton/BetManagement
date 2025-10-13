@@ -1,0 +1,15 @@
+Create a headless application that uses webscraping with a headless chromium browser to scrape the latest football betting data and place bet's using the browser on the Bet365 website.
+
+The application should be able to log in using a username and password.
+
+Once logged in it will scrape the website for the football matches that are set to be played in the next 48 hours. For each match it will collect the odds for home team win, away team win, draw, all the different levels of shot, corner and card bets.
+
+All scraped data to be stored in a backend database.
+
+It will provide a web based front end that will allow the data collected to be browsed, and then bets to be placed on Bet365.
+
+Create a standards based application to meet the requirements. When creating the application asp.net web api should be used for the backend systems and React for front end. For the webscraping process use any suitable technology. Where suitable clean architecture should be applied. Applications should be managed using aspire.net
+
+Ensure all code has unit test coverage and that security is prioritised.
+
+When testing, ensure you run any services in background threads so that you can use the current thread to run the tests.
