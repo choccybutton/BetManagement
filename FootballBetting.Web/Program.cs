@@ -37,6 +37,7 @@ builder.Services.AddFootballApi(config =>
 
 // Register Football API related services
 builder.Services.AddScoped<FixtureService>();
+builder.Services.AddSingleton<IApiUsageService, ApiUsageService>();
 builder.Services.AddScoped<FootballApiService>();
 
 var app = builder.Build();

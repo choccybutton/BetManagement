@@ -246,6 +246,120 @@
                 </div>
             }
         </div>
+        
+        <!-- Head-to-Head Data -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Head-to-Head History</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (h2hLoading)
+                        {
+                            <div class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                                    <span class="visually-hidden">Loading head-to-head data...</span>
+                                </div>
+                                <small class="text-muted">Loading historical data...</small>
+                            </div>
+                        }
+                        else if (h2hError)
+                        {
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                Unable to load head-to-head data.
+                                <button class="btn btn-outline-warning btn-sm ms-2" @onclick="LoadHeadToHeadData">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>Retry
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row">
+                                <!-- Same Configuration H2H -->
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">
+                                        <i class="bi bi-house me-1"></i>@fixture.Teams.Home.Name (Home) vs @fixture.Teams.Away.Name (Away)
+                                    </h6>
+                                    @if (sameConfigH2H.Any())
+                                    {
+                                        <div class="h2h-matches">
+                                            @foreach (var match in sameConfigH2H)
+                                            {
+                                                <div class="h2h-match mb-2">
+                                                    <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                                                        <div class="d-flex align-items-center">
+                                                            <img src="@match.Teams.Home.Logo" alt="@match.Teams.Home.Name" class="h2h-team-logo me-2" />
+                                                            <div>
+                                                                <div class="fw-semibold small">@match.Teams.Home.Name</div>
+                                                                <div class="small text-muted">vs @match.Teams.Away.Name</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-center">
+                                                            <div class="fw-bold">@match.Goals.Home - @match.Goals.Away</div>
+                                                            <div class="small text-muted">@match.Fixture.Date.ToString("dd/MM/yyyy")</div>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <img src="@match.Teams.Away.Logo" alt="@match.Teams.Away.Name" class="h2h-team-logo" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-muted small">
+                                            <i class="bi bi-info-circle me-1"></i>No recent matches with this configuration
+                                        </div>
+                                    }
+                                </div>
+                                
+                                <!-- Opposite Configuration H2H -->
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">
+                                        <i class="bi bi-arrow-left-right me-1"></i>@fixture.Teams.Away.Name (Home) vs @fixture.Teams.Home.Name (Away)
+                                    </h6>
+                                    @if (oppositeConfigH2H.Any())
+                                    {
+                                        <div class="h2h-matches">
+                                            @foreach (var match in oppositeConfigH2H)
+                                            {
+                                                <div class="h2h-match mb-2">
+                                                    <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                                                        <div class="d-flex align-items-center">
+                                                            <img src="@match.Teams.Home.Logo" alt="@match.Teams.Home.Name" class="h2h-team-logo me-2" />
+                                                            <div>
+                                                                <div class="fw-semibold small">@match.Teams.Home.Name</div>
+                                                                <div class="small text-muted">vs @match.Teams.Away.Name</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-center">
+                                                            <div class="fw-bold">@match.Goals.Home - @match.Goals.Away</div>
+                                                            <div class="small text-muted">@match.Fixture.Date.ToString("dd/MM/yyyy")</div>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <img src="@match.Teams.Away.Logo" alt="@match.Teams.Away.Name" class="h2h-team-logo" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-muted small">
+                                            <i class="bi bi-info-circle me-1"></i>No recent matches with this configuration
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 </div>
 
@@ -287,6 +401,25 @@
     .card-header h5 {
         font-size: 1.1rem;
     }
+    
+    .h2h-team-logo {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+    }
+    
+    .h2h-match {
+        transition: background-color 0.2s ease;
+    }
+    
+    .h2h-match:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+    
+    .h2h-matches {
+        max-height: 400px;
+        overflow-y: auto;
+    }
 </style>
 
 @code {
@@ -295,6 +428,12 @@
     private FixtureDetails? fixture = null;
     private bool loading = true;
     private bool error = false;
+    
+    // Head-to-head data
+    private List<FixtureDetails> sameConfigH2H = new();
+    private List<FixtureDetails> oppositeConfigH2H = new();
+    private bool h2hLoading = false;
+    private bool h2hError = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -328,6 +467,9 @@
             {
                 Logger.LogInformation("Loaded fixture {FixtureId}: {HomeTeam} vs {AwayTeam}", 
                     FixtureId, fixture.Teams?.Home?.Name, fixture.Teams?.Away?.Name);
+                
+                // Load head-to-head data after fixture is loaded
+                _ = LoadHeadToHeadData();
             }
         }
         catch (Exception ex)
@@ -401,5 +543,43 @@
                score?.Fulltime?.Home.HasValue == true ||
                score?.Extratime?.Home.HasValue == true ||
                score?.Penalty?.Home.HasValue == true;
+    }
+    
+    private async Task LoadHeadToHeadData()
+    {
+        if (fixture?.Teams?.Home?.Id == null || fixture?.Teams?.Away?.Id == null)
+            return;
+            
+        try
+        {
+            h2hLoading = true;
+            h2hError = false;
+            StateHasChanged();
+            
+            var homeTeamId = fixture.Teams.Home.Id;
+            var awayTeamId = fixture.Teams.Away.Id;
+            
+            Logger.LogInformation("Loading H2H data for {HomeTeam} vs {AwayTeam}", homeTeamId, awayTeamId);
+            
+            var h2hData = await FootballApi.GetComprehensiveHeadToHeadAsync(homeTeamId, awayTeamId, 5);
+            
+            sameConfigH2H = h2hData.SameConfiguration;
+            oppositeConfigH2H = h2hData.OppositeConfiguration;
+            
+            Logger.LogInformation("Loaded H2H data: {SameCount} same config, {OppositeCount} opposite config", 
+                sameConfigH2H.Count, oppositeConfigH2H.Count);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading head-to-head data for fixture {FixtureId}", FixtureId);
+            h2hError = true;
+            sameConfigH2H = new List<FixtureDetails>();
+            oppositeConfigH2H = new List<FixtureDetails>();
+        }
+        finally
+        {
+            h2hLoading = false;
+            StateHasChanged();
+        }
     }
 }

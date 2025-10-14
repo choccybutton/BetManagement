@@ -1,0 +1,12 @@
+The Football API is a paid service. There are daily and per minute limits to the requests available to use.
+
+The following values are returned in the headers of each request response to allow tracking of usage -
+
+x-ratelimit-requests-limit: The number of requests allocated per day according to your subscription.
+x-ratelimit-requests-remaining: The number of remaining requests per day according to your subscription.
+X-RateLimit-Limit: Maximum number of API calls per minute.
+X-RateLimit-Remaining: Number of API calls remaining before reaching the limit per minute.
+
+You can also get the statistics from the status endpoint.
+
+We should capture this data and store it locally. In the header of the dashboard we should show the percentage of daily use that has been used.

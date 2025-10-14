@@ -1,0 +1,126 @@
+@using FootballBetting.Web.Services
+@inject IApiUsageService UsageService
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="api-usage-display" @onclick="NavigateToUsageStats">
+    <div class="usage-meter">
+        <div class="usage-bar">
+            <div class="usage-progress" style="width: @GetUsagePercentage()%; background-color: @GetUsageColor();"></div>
+        </div>
+        <div class="usage-text">
+            <span class="usage-count" style="color: @GetUsageColor();">@_statistics.TotalRequests</span>
+            <span class="usage-separator">/</span>
+            <span class="usage-limit">@_statistics.DailyLimit</span>
+        </div>
+    </div>
+    <div class="usage-label">API Requests</div>
+</div>
+
+@code {
+    private ExtendedApiUsageStatistics _statistics = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _statistics = UsageService.GetUsageStatistics();
+        UsageService.UsageUpdated += OnUsageUpdated;
+        await base.OnInitializedAsync();
+    }
+
+    private void OnUsageUpdated(object? sender, ExtendedApiUsageStatistics statistics)
+    {
+        _statistics = statistics;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void NavigateToUsageStats()
+    {
+        Navigation.NavigateTo("/usage-statistics");
+    }
+
+    private double GetUsagePercentage()
+    {
+        if (_statistics.DailyLimit == 0) return 0;
+        return Math.Min(100, (_statistics.TotalRequests * 100.0) / _statistics.DailyLimit);
+    }
+
+    private string GetUsageColor()
+    {
+        var percentage = GetUsagePercentage();
+        if (percentage < 50) return "#28a745";
+        if (percentage < 80) return "#ffc107";
+        return "#dc3545";
+    }
+
+    public void Dispose()
+    {
+        UsageService.UsageUpdated -= OnUsageUpdated;
+    }
+}
+
+<style>
+    .api-usage-display {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: background-color 0.2s;
+        min-width: 120px;
+    }
+
+    .api-usage-display:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .usage-meter {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        width: 100%;
+    }
+
+    .usage-bar {
+        width: 100%;
+        height: 8px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .usage-progress {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .usage-text {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+    }
+
+    .usage-count {
+        font-weight: 600;
+    }
+
+    .usage-separator {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .usage-limit {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .usage-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.8);
+        margin-top: 2px;
+        text-align: center;
+    }
+</style>

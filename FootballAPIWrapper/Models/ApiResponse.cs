@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using FootballAPIWrapper.Converters;
 
 namespace FootballAPIWrapper.Models
 {
@@ -12,6 +13,7 @@ namespace FootballAPIWrapper.Models
         public Dictionary<string, object> Parameters { get; set; }
 
         [JsonProperty("errors")]
+        [JsonConverter(typeof(ErrorsJsonConverter))]
         public List<string> Errors { get; set; }
 
         [JsonProperty("results")]
